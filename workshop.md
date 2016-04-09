@@ -1,4 +1,4 @@
-# VSTS and PaaS Workshop
+# Continuous Delivery build pipeline using VSTS and Azure PaaS
 
 ## Exercise 1 - Create a VSTS instance with a web app in a Git repository
 
