@@ -83,7 +83,7 @@ Congratulations! You've set up Continuous Integration for your web application.
     * Enter a name for your app (end the name with "-test" since it will be a test environment)
     * Choose the correct subscription
     * Enter a new resource group name (use the same name as the web app, including the "-test")
-    * Choose to create a new App Service plan: name if "{webappname_includingdashtest}-farm", choose which Azure region you want it hosted in and choose the "B1 Basic" tier, click "OK" 
+    * Choose to create a new App Service plan: name if "{webappname_includingdashtest}-farm", choose to host in "Australia Southeast" and choose the "B1 Basic" tier, click "OK" 
     * Click "Create"
     * Wait for the deployment to finish and then inspect the web app in the Portal to get a feel for the capabilities in Azure Web Apps
 2. Create Azure deployment credentials ([Reference](https://blogs.msdn.microsoft.com/visualstudioalm/2015/10/04/automating-azure-resource-group-deployment-using-a-service-principal-in-visual-studio-online-buildrelease-management/))
@@ -99,7 +99,7 @@ Congratulations! You've set up Continuous Integration for your web application.
     * Click on "New Service Endpoint" and choose "Azure Resource Manager"
     * Enter a connection name that describes your Azure subscription
     * Add in the Subscription ID, subscription name, service principal id, service principal password and tenant ID that you got from the previous step
-    * Note: at the time of writing you [can't seem use the Azure Resource Manager service endpoint](https://twitter.com/robdmoore/status/716602945542881280) to deploy a web app, so we will also need to create a Management Certificate based service endpoint (this is the old way of authentication to Azure)
+    * Note: at the time of writing you [can't seem use the Azure Resource Manager service endpoint](https://twitter.com/robdmoore/status/716602945542881280) to deploy a web app, so we will also need to create a Management Certificate based service endpoint (this is the old way of authentication to Azure) - don't worry, you will need the Azure Resource Manager service endpoint later in the workshop
         * Click on "New Service Endpoint" and choose "Azure Classic"
         * Choose the "Certificate Based" option
         * Add in a connection name
@@ -141,6 +141,82 @@ Congratulations! You've set up Continuous Integration for your web application.
     
 Congratulations! You've set up continuous deployment for your web application.
 
-## Exercise 4 - Create the test Azure environment using Azure Resource Manager
+## Exercise 4 - Create the test Azure environment using Azure Resource Manager from VSTS
 
-1. 
+1. [Download this repository](https://github.com/MRCollective/CDPipeline_MicrosoftAzureGlobalBootcampPerth2016/archive/master.zip)
+2. Extract the files in the `exercise4` folder to a folder called `deploy` in your checked out Git repository
+    * `Deploy.ps` is a PowerShell script that will create your environment - feel free to try and understand it
+    * `azuredeploy.json` is an [Azure Resource Manager template deployment file](https://azure.microsoft.com/en-us/documentation/articles/resource-group-authoring-templates/) - it describes your environment (in this case a web app inside of an App Service server farm)
+    * `Deploy-Local.ps1` is a PowerShell script that you can use for local debugging/development
+3. If you want to run it locally to test it out then:
+    * Open `Deploy-Local.ps1` and add values for the following empty variables: `$TenantId`, `$SubscriptionId`, `$AppName`
+        * `$TenantId` can be found by clicking the `(?)` icon at the top right of the Azure Portal and selecting "Show diagnostics", hitting `Ctrl+F` on your keyboard and typing in "tenants" and grabbing the `id` property value (it will be a GUID) of the appropriate tenant
+        * `$SubscriptionId` can be found by click on the "Subscriptions" entry on the left menu in the Azure Portal and copying the value in the "Subscription ID" column for the appropriate subscription (it will be a GUID)
+        * `$AppName` will be the name of the app you created in Exercise 3
+    * Open your `.gitignore` file ([create one](http://tutsheap.com/wiki/how-to-create-a-gitignore-file-in-windows/) in the root of your Git repository checkout if there isn't one) and add `profile.json` on it's own line somewhere in that file (this prevents you from being able to accidentally commit the access token that is stored when running `Deploy-Local.ps1`
+    * Run `Deploy-Local.ps1` and it should work
+    * If you have a name conflict with your previous deployment you should be able to safely delete the existing Resource Group first
+4. Commit the new files and push them up
+5. Add the deployment scripts as a build artifact in VSTS
+    * Open the "Build" tab, click on the appropriate build definition and click the "Edit" link
+    * Click on the "Publish Build Artifacts" step and click "Add build step", click on the "Utility" tab on the left and select "Publish Build Artifacts", click "Add" then click "Close"
+    * Click on the new build step and enter:
+        * "deploy" as "Path to Publish"
+        * "deployment" as "Artifact Name"
+        * "Server" as "Artifact Type"
+    * Click "Save" and "OK"
+6. Run the ARM deployment as part of the release definition
+    * Open the "Release" tab, click on the appropriate release definition and click the "Edit" link
+    * Click the "Add tasks" button, click on "Azure PowerShell", click "Add" then click "Close"
+    * Click on the new deployment step and:
+        * Choose "Azure Resource Manager" as "Azure Connection Type"
+        * Select the "Azure RM Subscription" you created earlier
+        * Click the "..." for "Script Path" and navigate to `Deploy.ps1`
+        * Enter the following for "Script Arguments": `-AlreadyLoggedIn -TenantId (Get-AzureRmContext).Tenant.TenantId -SubscriptionId (Get-AzureRmContext).Subscription.SubscriptionId -Location "Australia Southeast" -AppName "$(AppName)" -AppEnvironment "$(AppEnvironment)"`
+        * Drag the new release step to run before the web app deployment
+        * Click "Save"
+        * Go to the "Configuration" tab
+        * Enter a new variable "AppName" with the name of the app you created in Exercise 3
+        * Go back to the "Environments" tab, click the "..." icon on the "Test" environment and click "Configure variables"
+        * Remove all the variables that are there by default and add a new one called "AppEnvironment" and set the value to "test" and click "OK"
+        * Click "Save"
+    * Go to the build tab, select the appropriate build definition and click the "Queue build..." button and click "OK"
+    * Wait for the build to complete, then click on the "Release" tab and double click on the new release that was created and click on the "Logs" tab to see the release logs
+    * Feel free to try deleting the resource group from Azure and re-running a deployment to ensure that it works
+
+Congratulations! You've automatically created an Azure environment from VSTS.
+
+## Exercise 5 - Add production deployment
+
+1. Add the production environment
+    * Go to the "Release" tab in VSTS, find the relevant release definition and click "Edit"
+    * Click on the "Azure Web App Deployment" task and change the web app name to `$(AppName)-$(AppEnvironment)`
+    * Click on the "..." button for the "Test" environment and select "Clone environment"
+    * Type in "Production" and hit enter
+    * Click on the "..." button for the "Production" environment and select "Configure variables"
+    * Change the "AppEnvironment" variable value to "prod" and click "OK"
+    * Click on the "..." button for the "Production" environment and select "Deployment conditions"
+    * Change the "Trigger" to "No automated deployment" and click "OK"
+    * Click "Save" 
+2. Instigate a production deployment
+    * Click the "Releases" link next to the release definition title
+    * Click "Release" and then "Create Release"
+    * Select the last successful CI build and then click "Create"
+    * The new release should show up and should have two grey bars to indicate the fact there are now two environments
+    * Double click the release to see the details
+    * When the release has finished click "Deploy" and then select "Production" and then click "Deploy"
+    * Click on the "Logs" tab to see the progress of the production deployment
+    * When the build has finished check in the Azure portal to see if a new web app was created for production and visit it to ensure the application was successfully deployed
+3. Look at the build pipeline view
+    * Go to the "Release" tab and click on the "Overview" tab
+    * Observe the visualisation - this shows what version is deployed to what environment at any time
+
+Congratulations! You have created a production environment that matches your test environment exactly and deployed to it all from VSTS.
+
+## Further exercises
+
+The following exercises are left to the reader to complete to try and extend the work they have done.
+
+* Add proper version numbers by adding [GitVersion](https://marketplace.visualstudio.com/items?itemName=gittools.gitversion) as the first step of the CI build (including updating assembly info), changing build number format to be `$(Build.BuildNumber)` and labelling on successful build with the value `$(GitVersion_SemVer)` so the version increments on each successful build. Change the version number in the release definition to `$(Build.BuildNumber)`. Output `@typeof(MvcApplication).Assembly.GetName().Version` in the footer of the site so you can verify what version is deployed to which environment.
+* Change the `azuredeploy.json` file to change [properties of your web app](https://github.com/davidebbo/AzureWebsitesSamples/blob/master/ARMTemplates/WebAppManyFeatures.json) (e.g. the always on setting) and propagate that change through your test and production environment (checking it worked via the Azure Portal).
+* Add an [Azure SQL Database](https://github.com/Azure/azure-quickstart-templates/blob/master/201-web-app-sql-database/azuredeploy.json) to the `azuredeploy.json` file and change the connection string for the web app to point to it and use the connection from your code. 
