@@ -1,32 +1,48 @@
 Param (
+    [string]
+    [Parameter(ParameterSetName = "SpecifyServicePrincipal", Mandatory = $true)]
+    $ServicePrincipalId,
+
+    [string]
+    [Parameter(ParameterSetName = "SpecifyServicePrincipal", Mandatory = $true)]
+    $ServicePrincipalPassword,
+
+    [switch]
+    [Parameter(ParameterSetName = "AlreadyLoggedIn", Mandatory = $true)]
+    $AlreadyLoggedIn,
+
     [string] [Parameter(Mandatory = $true)] $SubscriptionId,
     [string] [Parameter(Mandatory = $true)] $TenantId,
-    [string] [Parameter(Mandatory = $true)] $ClientId,
-    [string] [Parameter(Mandatory = $true)] $Password,
     [string] [Parameter(Mandatory = $true)] $Location,
     [string] [Parameter(Mandatory = $true)] $AppName,
     [string] [Parameter(Mandatory = $true)] $AppEnvironment,
-    [string] $ResourceGroupName = "$AppName-$AppEnvironment-resources",
-    [string] $WebHostingPlan = "$AppName-$AppEnvironment-farm",
-    [string] $WebAppVMSize = "Small",
-    [string] $WebAppEdition = "Standard"
+    [string] $ResourceGroupName = "$AppName-$AppEnvironment",
+    [string] $WebAppTier = "B1",
+    [int] $WebAppInstances = 1
 )
 
 function Get-Parameters() {
     return @{
+        "serverFarmName" = "$AppName-$AppEnvironment-farm";
+        "serverFarmTier" = $WebAppTier;
+        "serverFarmCapacity" = $WebAppInstances;
+        "webAppName" = "$AppName-$AppEnvironment";
     }
 }
 
 try {
+    Set-StrictMode -Version "Latest"
     $ErrorActionPreference = "Stop"
     
-    Write-Output "Authenticating to ARM as service principal $ClientId"
-    $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
-    $servicePrincipalCredentials = New-Object System.Management.Automation.PSCredential ($ClientId, $securePassword)
-    Login-AzureRmAccount -ServicePrincipal -TenantId $TenantId -Credential $servicePrincipalCredentials | Out-Null
+    if (-not $AlreadyLoggedIn) {
+        Write-Output "Authenticating to ARM as service principal $ServicePrincipalId"
+        $securePassword = ConvertTo-SecureString $ServicePrincipalPassword -AsPlainText -Force
+        $servicePrincipalCredentials = New-Object System.Management.Automation.PSCredential ($ServicePrincipalId, $securePassword)
+        Login-AzureRmAccount -ServicePrincipal -TenantId $TenantId -Credential $servicePrincipalCredentials | Out-Null
+    }
     
     Write-Output "Selecting subscription $SubscriptionId"
-    Select-AzureRmSubscription -SubscriptionId $SubscriptionId
+    Select-AzureRmSubscription -SubscriptionId $SubscriptionId | Out-Null
 
     Write-Output "Ensuring resource group $ResourceGroupName exists"
     New-AzureRmResourceGroup -Location $Location -Name $ResourceGroupName -Force | Out-Null

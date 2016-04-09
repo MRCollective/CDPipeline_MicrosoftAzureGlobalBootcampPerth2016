@@ -3,41 +3,67 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "serverFarmName": {
-            "type": "string"
+            "type": "string",
+            "metadata": {
+                "description": "Name for the server farm."
+            }
+        },
+        "serverFarmTier": {
+            "type": "string",
+            "allowedValues": [
+                "F1",
+                "D1",
+                "B1",
+                "B2",
+                "B3",
+                "S1",
+                "S2",
+                "S3",
+                "P1",
+                "P2",
+                "P3",
+                "P4"
+            ],
+            "metadata": {
+                "description": "Describes plan's pricing tier and instance size. Check details at https://azure.microsoft.com/en-us/pricing/details/app-service/."
+            }
+        },
+        "serverFarmCapacity": {
+            "type": "int",
+            "defaultValue": 1,
+            "metadata": {
+                "description": "Number of instances to host in the server farm."
+            }
         },
         "webAppName": {
-            "type": "string"
+            "type": "string",
+            "metadata": {
+                "description": "Name for the web app."
+            }
         }
     },
     "variables": {},
     "resources": [
         {
-            "type": "Microsoft.Web/serverfarms",
-            "sku": {
-                "name": "B1",
-                "tier": "Basic",
-                "size": "B1",
-                "family": "B",
-                "capacity": 1
-            },
-            "name": "[parameters('serverFarmName')]",
             "apiVersion": "2015-08-01",
-            "location": "Australia Southeast",
+            "name": "[parameters('serverFarmName')]",
+            "type": "Microsoft.Web/serverfarms",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "[parameters('serverFarmTier')]",
+                "capacity": "[parameters('serverFarmCapacity')]"
+            },
             "properties": {
-                "name": "[parameters('serverFarmName')]",
-                "numberOfWorkers": 1
+                "name": "[parameters('serverFarmName')]"
             }
         },
         {
-            "type": "Microsoft.Web/sites",
-            "name": "[parameters('webAppName')]",
             "apiVersion": "2015-08-01",
-            "location": "Australia Southeast",
+            "name": "[parameters('webAppName')]",
+            "type": "Microsoft.Web/sites",
+            "location": "[resourceGroup().location]",
             "properties": {
                 "name": "[parameters('webAppName')]",
-                "hostNames": [
-                    "robdmooreglobalazurebootcamp2016-test.azurewebsites.net"
-                ],
                 "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('serverFarmName'))]"
             },
             "dependsOn": [

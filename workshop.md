@@ -82,8 +82,8 @@ Congratulations! You've set up Continuous Integration for your web application.
     * Click on "Web App"
     * Enter a name for your app (end the name with "-test" since it will be a test environment)
     * Choose the correct subscription
-    * Enter a new resource group name (use the same name as the web app without the "-test")
-    * Choose to create a new App Service plan: use the same name as the web app without the "-test", choose which Azure region you want it hosted in and choose the "B1 Basic" tier, click "OK" 
+    * Enter a new resource group name (use the same name as the web app, including the "-test")
+    * Choose to create a new App Service plan: name if "{webappname_includingdashtest}-farm", choose which Azure region you want it hosted in and choose the "B1 Basic" tier, click "OK" 
     * Click "Create"
     * Wait for the deployment to finish and then inspect the web app in the Portal to get a feel for the capabilities in Azure Web Apps
 2. Create Azure deployment credentials ([Reference](https://blogs.msdn.microsoft.com/visualstudioalm/2015/10/04/automating-azure-resource-group-deployment-using-a-service-principal-in-visual-studio-online-buildrelease-management/))
@@ -141,6 +141,6 @@ Congratulations! You've set up Continuous Integration for your web application.
     
 Congratulations! You've set up continuous deployment for your web application.
 
-## Exercise 4 - Create the test environment using Azure Resource Manager
+## Exercise 4 - Create the test Azure environment using Azure Resource Manager
 
 1. 
