@@ -27,7 +27,7 @@
 6. Click save-all in Visual Studio, add a gitignore and commit the files then push up to origin/master
     * If you refresh the code tab in VSTS you should see your source code is there
 
-Congratulations - you've created a VSTS instance with a Git repository containing a web application.
+Congratulations! You've created a VSTS instance with a Git repository containing a web application.
 
 ## Exercise 2 - Set up a Continuous Integration build
 
@@ -140,3 +140,7 @@ Congratulations! You've set up Continuous Integration for your web application.
     * When that finishes, visit the Azure Web App and it should be updated
     
 Congratulations! You've set up continuous deployment for your web application.
+
+## Exercise 4 - Create the test environment using Azure Resource Manager
+
+1. 

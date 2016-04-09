@@ -1,0 +1,48 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "serverFarmName": {
+            "type": "string"
+        },
+        "webAppName": {
+            "type": "string"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Web/serverfarms",
+            "sku": {
+                "name": "B1",
+                "tier": "Basic",
+                "size": "B1",
+                "family": "B",
+                "capacity": 1
+            },
+            "name": "[parameters('serverFarmName')]",
+            "apiVersion": "2015-08-01",
+            "location": "Australia Southeast",
+            "properties": {
+                "name": "[parameters('serverFarmName')]",
+                "numberOfWorkers": 1
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "name": "[parameters('webAppName')]",
+            "apiVersion": "2015-08-01",
+            "location": "Australia Southeast",
+            "properties": {
+                "name": "[parameters('webAppName')]",
+                "hostNames": [
+                    "robdmooreglobalazurebootcamp2016-test.azurewebsites.net"
+                ],
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('serverFarmName'))]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', parameters('serverFarmName'))]"
+            ]
+        }
+    ]
+}
