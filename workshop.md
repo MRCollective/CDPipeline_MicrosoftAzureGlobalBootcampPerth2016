@@ -26,7 +26,8 @@
     * Use the MVC template
 6. Click save-all in Visual Studio, add a gitignore and commit the files then push up to origin/master
     * If you refresh the code tab in VSTS you should see your source code is there
-    * Invoke-WebRequest https://gist.githubusercontent.com/kmorcinek/2710267/raw/ -OutFile .gitignore
+    * You can run this PowerShell command to grab a gitignore:
+    * Invoke-WebRequest https://raw.githubusercontent.com/github/gitignore/master/VisualStudio.gitignore -OutFile .gitignore
 
 Congratulations! You've created a VSTS instance with a Git repository containing a web application.
 
