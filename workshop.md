@@ -92,7 +92,7 @@ Congratulations! You've set up Continuous Integration for your web application.
     * Figure out your subscription name by browsing to "Subscriptions" by the left menu in the Azure Portal and copying the name in the "Subscription" column
     * If you have an old version of Azure PowerShell then uninstall it (via "Add/Remove Programs" as well as anything in "C:\Program Files\WindowsPowerShell\Modules")
     * Use [Chocolatey](https://chocolatey.org/) to install [azurepowershell](https://chocolatey.org/packages/AzurePowerShell) (`choco install azurepowershell`)
-    * [Download the script to create a service principal](https://raw.githubusercontent.com/Microsoft/vso-agent-tasks/master/Tasks/DeployAzureResourceGroup/SPNCreation.ps1)
+    * [Download the script to create a service principal](https://raw.githubusercontent.com/Microsoft/vsts-rm-documentation/master/Azure/SPNCreation.ps1)
     * Open a PowerShell prompt, `cd` to the folder with the script and run `.\SPNCreation.ps1 -subscriptionName "{Your_Subscription_Name}" -password "{Make_Up_A_Password}"`
     * You should see a bunch of information outputted - keep hold of that; you'll need it in a sec
 3. Add Azure deployment credentials to VSTS
